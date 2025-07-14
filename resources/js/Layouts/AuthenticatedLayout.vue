@@ -192,4 +192,5 @@ const showingNavigationDropdown = ref(false);
             </main>
         </div>
     </div>
+    <Toast />
 </template>

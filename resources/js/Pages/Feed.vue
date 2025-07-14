@@ -101,61 +101,82 @@ import Textarea from 'primevue/textarea';
 import InputText from 'primevue/inputtext';
 import Card from 'primevue/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-
-// Simulated logged-in user
-const authUser = ref({ id: 1, name: 'Waqas Zafar' });
-
+import { Head, router } from '@inertiajs/vue3';
+import { useToast } from 'primevue/usetoast';
+const toast = useToast();
 // New post input
 const newPost = ref('');
 
-// Sample hardcoded post list
-const posts = ref([
-    {
-        id: 101,
-        user: { id: 1, name: 'Waqas Zafar' },
-        content: 'This is my first post!',
-        likes_count: 2,
-        liked: true,
-        newComment: '',
-        comments: [
-            { id: 201, user: { name: 'Ali Khan' }, content: 'Great post!' },
-            { id: 202, user: { name: 'Sara Malik' }, content: 'Love it 👏' },
-        ],
-    },
-    {
-        id: 102,
-        user: { id: 2, name: 'Aisha Ahmed' },
-        content: 'Enjoying Vue and Laravel ❤️',
-        likes_count: 5,
-        liked: false,
-        newComment: '',
-        comments: [
-            { id: 203, user: { name: 'Waqas Zafar' }, content: 'Keep it up!' },
-        ],
-    },
-]);
+const props = defineProps({
+    posts: Array,
+    authUser: Object,
+});
 
-// Dummy functions
+// ✅ Make a local editable copy
+const posts = ref(
+    props.posts.map((post) => ({
+        ...post,
+        newComment: '',
+    })),
+);
+
 function submitPost() {
-    alert('Post submitted: ' + newPost.value);
-    newPost.value = '';
+    if (!newPost.value.trim()) return;
+
+    router.post(
+        '/posts',
+        {
+            content: newPost.value,
+        },
+        {
+            onSuccess: () => {
+                newPost.value = '';
+                router.reload({ only: ['posts'] }); // Refresh just the post list
+            },
+        },
+    );
 }
 
 function toggleLike(post) {
-    post.liked = !post.liked;
-    post.likes_count += post.liked ? 1 : -1;
+    router.post(
+        `/posts/${post.id}/like`,
+        {},
+        {
+            preserveScroll: true,
+            onFinish: () => {
+                router.reload({ only: ['posts'] });
+            },
+        },
+    );
 }
 
 function addComment(post) {
-    if (post.newComment.trim()) {
-        post.comments.push({
-            id: Date.now(),
-            user: { name: authUser.value.name },
-            content: post.newComment.trim(),
-        });
-        post.newComment = '';
-    }
+    if (!post.newComment || !post.newComment.trim()) return;
+
+    router.post(
+        `/posts/${post.id}/comments`,
+        {
+            content: post.newComment,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                post.comments.unshift({
+                    id: Date.now(),
+                    content: post.newComment,
+                    user: {
+                        name: props.authUser.name,
+                    },
+                });
+                post.newComment = '';
+                toast.add({
+                    severity: 'success',
+                    summary: 'Comment added!',
+                    life: 3000,
+                });
+            },
+        },
+    );
 }
 
 function editPost(post) {
