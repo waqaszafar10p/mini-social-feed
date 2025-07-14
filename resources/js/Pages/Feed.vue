@@ -107,18 +107,10 @@ const toast = useToast();
 // New post input
 const newPost = ref('');
 
-const props = defineProps({
+defineProps({
     posts: Array,
     authUser: Object,
 });
-
-// ✅ Make a local editable copy
-const posts = ref(
-    props.posts.map((post) => ({
-        ...post,
-        newComment: '',
-    })),
-);
 
 function submitPost() {
     if (!newPost.value.trim()) return;
@@ -161,13 +153,6 @@ function addComment(post) {
         {
             preserveScroll: true,
             onSuccess: () => {
-                post.comments.unshift({
-                    id: Date.now(),
-                    content: post.newComment,
-                    user: {
-                        name: props.authUser.name,
-                    },
-                });
                 post.newComment = '';
                 toast.add({
                     severity: 'success',
