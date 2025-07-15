@@ -2,7 +2,7 @@
     <Head title="Dashboard" />
     <AuthenticatedLayout>
         <div class="container mx-auto p-4">
-            <!-- 🌟 Create Post -->
+            <!-- Create Post -->
             <Card class="mb-4">
                 <template #title>What's on your mind?</template>
                 <template #content>
@@ -13,10 +13,10 @@
                         class="mb-2 w-full"
                     />
                     <div
-                        v-if="errors.content"
+                        v-if="errors?.createPost?.content"
                         class="mt-1 text-sm text-red-500"
                     >
-                        {{ errors.content }}
+                        {{ errors.createPost.content }}
                     </div>
                     <Button
                         label="Post"
@@ -26,8 +26,7 @@
                     />
                 </template>
             </Card>
-
-            <!-- 📰 Posts List -->
+            <!-- Posts List -->
             <div v-for="post in posts" :key="post.id" class="mb-4">
                 <Card>
                     <template #title>
@@ -63,7 +62,7 @@
                         >
                             {{ dayjs(post.created_at).fromNow() }}
                         </div>
-                        <!-- ❤️ Likes -->
+                        <!-- Likes -->
                         <div class="mt-2 flex items-center gap-2">
                             <Button
                                 :icon="
@@ -79,14 +78,14 @@
                             <span>{{ post.likes_count }} like(s)</span>
                         </div>
 
-                        <!-- 💬 Comments -->
+                        <!-- Comments -->
                         <div
                             class="bg-surface-100 border-surface-200 rounded-lg border p-3 text-sm"
                             style="max-height: 200px; overflow-y: auto"
                         >
                             <div class="mt-2 flex gap-2">
                                 <InputText
-                                    v-model="post.newComment"
+                                    v-model="newComment"
                                     class="w-full"
                                     placeholder="Write a comment..."
                                 />
@@ -95,6 +94,12 @@
                                     icon="pi pi-send"
                                     @click="addComment(post)"
                                 />
+                            </div>
+                            <div
+                                v-if="errors?.createComment?.content"
+                                class="mt-1 text-sm text-red-500"
+                            >
+                                {{ errors.createComment.content }}
                             </div>
                             <div
                                 v-for="comment in post.comments"
@@ -119,13 +124,6 @@
                                             : ''
                                     }}
                                 </span>
-                            </div>
-
-                            <div
-                                v-if="errors.content"
-                                class="mt-1 text-sm text-red-500"
-                            >
-                                {{ errors.content }}
                             </div>
                         </div>
                     </template>
@@ -171,14 +169,13 @@ import { Head, router } from '@inertiajs/vue3';
 import { useToast } from 'primevue/usetoast';
 import Dialog from 'primevue/dialog';
 import { useConfirm } from 'primevue/useconfirm';
-
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 const toast = useToast();
 const newPost = ref('');
+const newComment = ref('');
 const confirm = useConfirm();
-
 const editingPostId = ref(null);
 const editedContent = ref('');
 const isEditDialogVisible = ref(false);
@@ -199,6 +196,7 @@ function submitPost() {
             content: newPost.value,
         },
         {
+            errorBag: 'createPost',
             onSuccess: () => {
                 newPost.value = '';
                 toast.add({
@@ -226,17 +224,18 @@ function toggleLike(post) {
 }
 
 function addComment(post) {
-    if (!post.newComment || !post.newComment.trim()) return;
+    if (!newComment.value || !newComment.value.trim()) return;
 
     router.post(
         `/posts/${post.id}/comments`,
         {
-            content: post.newComment,
+            content: newComment.value,
         },
         {
+            errorBag: 'createComment',
             preserveScroll: true,
             onSuccess: () => {
-                post.newComment = '';
+                newComment.value = '';
                 toast.add({
                     severity: 'success',
                     summary: 'Comment added!',
