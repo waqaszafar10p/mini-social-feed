@@ -21,6 +21,7 @@ class PostController extends Controller
                 return [
                     'id' => $post->id,
                     'content' => $post->content,
+                    'created_at' => $post->created_at,
                     'user' => $post->user,
                     'likes_count' => $post->likes->count(),
                     'liked' => $post->likes->contains('user_id', auth()->id()),
@@ -29,6 +30,7 @@ class PostController extends Controller
                             'id' => $comment->id,
                             'content' => $comment->content,
                             'user' => $comment->user,
+                            'created_at' => $comment->created_at,
                         ];
                     }),
                 ];
@@ -69,7 +71,7 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $request->validate([
-            'content' => 'required|string|max:500',
+            'content' => 'required|string|max:1000',
         ]);
 
         $post->update([

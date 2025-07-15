@@ -12,6 +12,12 @@
                         rows="3"
                         class="mb-2 w-full"
                     />
+                    <div
+                        v-if="errors.content"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ errors.content }}
+                    </div>
                     <Button
                         label="Post"
                         icon="pi pi-send"
@@ -47,7 +53,16 @@
 
                     <template #content>
                         <p>{{ post.content }}</p>
-
+                        <div
+                            class="mt-1 text-xs text-gray-500"
+                            :title="
+                                dayjs(post.created_at).format(
+                                    'YYYY-MM-DD hh:mm A',
+                                )
+                            "
+                        >
+                            {{ dayjs(post.created_at).fromNow() }}
+                        </div>
                         <!-- ❤️ Likes -->
                         <div class="mt-2 flex items-center gap-2">
                             <Button
@@ -65,26 +80,52 @@
                         </div>
 
                         <!-- 💬 Comments -->
-                        <div class="mt-4 border-t pt-2">
-                            <div
-                                v-for="comment in post.comments"
-                                :key="comment.id"
-                                class="mb-2 text-sm"
-                            >
-                                <strong>{{ comment.user.name }}:</strong>
-                                {{ comment.content }}
-                            </div>
-
+                        <div
+                            class="bg-surface-100 border-surface-200 rounded-lg border p-3 text-sm"
+                            style="max-height: 200px; overflow-y: auto"
+                        >
                             <div class="mt-2 flex gap-2">
                                 <InputText
                                     v-model="post.newComment"
                                     class="w-full"
                                     placeholder="Write a comment..."
                                 />
+
                                 <Button
                                     icon="pi pi-send"
                                     @click="addComment(post)"
                                 />
+                            </div>
+                            <div
+                                v-for="comment in post.comments"
+                                :key="comment.id"
+                                class="mt-1 text-sm"
+                            >
+                                <strong>{{ comment.user.name }}</strong
+                                >: {{ comment.content }}
+                                <span
+                                    class="ml-2 text-xs text-gray-400"
+                                    :title="
+                                        dayjs(comment.created_at).format(
+                                            'YYYY-MM-DD hh:mm A',
+                                        )
+                                    "
+                                >
+                                    {{
+                                        comment.created_at
+                                            ? dayjs(
+                                                  comment.created_at,
+                                              ).fromNow()
+                                            : ''
+                                    }}
+                                </span>
+                            </div>
+
+                            <div
+                                v-if="errors.content"
+                                class="mt-1 text-sm text-red-500"
+                            >
+                                {{ errors.content }}
                             </div>
                         </div>
                     </template>
@@ -131,6 +172,9 @@ import { useToast } from 'primevue/usetoast';
 import Dialog from 'primevue/dialog';
 import { useConfirm } from 'primevue/useconfirm';
 
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
 const toast = useToast();
 const newPost = ref('');
 const confirm = useConfirm();
@@ -142,7 +186,9 @@ const isEditDialogVisible = ref(false);
 defineProps({
     posts: Array,
     authUser: Object,
+    errors: Object,
 });
+dayjs.extend(relativeTime);
 
 function submitPost() {
     if (!newPost.value.trim()) return;
@@ -155,6 +201,11 @@ function submitPost() {
         {
             onSuccess: () => {
                 newPost.value = '';
+                toast.add({
+                    severity: 'success',
+                    summary: 'Post added!',
+                    life: 3000,
+                });
                 router.reload({ only: ['posts'] }); // Refresh just the post list
             },
         },
