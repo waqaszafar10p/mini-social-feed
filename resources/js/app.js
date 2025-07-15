@@ -15,6 +15,8 @@ import PrimeVue from 'primevue/config';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 
+import ConfirmationService from 'primevue/confirmationservice';
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -34,6 +36,7 @@ createInertiaApp({
             },
         });
         vueApp.use(ToastService);
+        vueApp.use(ConfirmationService);
         vueApp.component('Toast', Toast);
         vueApp.mount(el);
     },

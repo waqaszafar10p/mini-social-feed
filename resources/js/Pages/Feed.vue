@@ -95,7 +95,8 @@
             v-model:visible="isEditDialogVisible"
             modal
             header="Edit Post"
-            :style="{ width: '400px' }"
+            class="w-full max-w-[900px]"
+            :style="{ maxWidth: '700px' }"
         >
             <div class="p-2">
                 <Textarea
@@ -128,9 +129,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useToast } from 'primevue/usetoast';
 import Dialog from 'primevue/dialog';
+import { useConfirm } from 'primevue/useconfirm';
 
 const toast = useToast();
 const newPost = ref('');
+const confirm = useConfirm();
 
 const editingPostId = ref(null);
 const editedContent = ref('');
@@ -218,13 +221,22 @@ function submitEdit() {
 }
 
 function deletePost(postId) {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
-    router.delete(`/posts/${postId}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            router.reload({ only: ['posts'] });
+    confirm.require({
+        message: 'Are you sure you want to delete post?',
+        header: 'Delete Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: 'Cancel',
+        acceptLabel: 'Delete',
+        acceptClass: 'p-button-danger',
+        accept: async () => {
+            router.delete(`/posts/${postId}`, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.reload({ only: ['posts'] });
+                },
+            });
         },
+        reject: () => {},
     });
 }
 </script>
