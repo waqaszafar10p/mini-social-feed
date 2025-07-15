@@ -12,7 +12,7 @@ class CommentController extends Controller
     public function store(Request $request, Post $post)
     {
         $validated = $request->validate([
-            'content' => 'required|string|max:500',
+            'content' => 'required|string|min:10|max:500',
         ]);
 
         $post->comments()->create([
@@ -20,6 +20,6 @@ class CommentController extends Controller
             'content' => $validated['content'],
         ]);
 
-        return back(); // OR redirect()->route('feed')
+        return back();
     }
 }

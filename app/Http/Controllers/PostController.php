@@ -45,7 +45,7 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|min:50|max:1000',
         ]);
 
         auth()->user()->posts()->create($validated);
@@ -66,22 +66,22 @@ class PostController extends Controller
             $post->likes()->create(['user_id' => $user->id]);
         }
 
-        return back(); // or redirect()->route('feed')
+        return back(); 
     }
     public function update(Request $request, Post $post)
     {
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string||min:50|max:1000',
         ]);
 
         $post->update([
             'content' => $request->content,
         ]);
-        return back(); // or redirect with Inertia response if needed
+        return back(); 
     }
     public function destroy(Post $post)
     {
         $post->delete();
-        return back(); // or Inertia redirect
+        return back(); 
     }
 }
