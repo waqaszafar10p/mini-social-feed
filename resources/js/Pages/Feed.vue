@@ -32,7 +32,7 @@
                                     icon="pi pi-pencil"
                                     text
                                     rounded
-                                    @click="editPost(post)"
+                                    @click="startEdit(post)"
                                 />
                                 <Button
                                     icon="pi pi-trash"
@@ -91,6 +91,30 @@
                 </Card>
             </div>
         </div>
+        <Dialog
+            v-model:visible="isEditDialogVisible"
+            modal
+            header="Edit Post"
+            :style="{ width: '400px' }"
+        >
+            <div class="p-2">
+                <Textarea
+                    v-model="editedContent"
+                    autoResize
+                    rows="4"
+                    class="w-full"
+                    placeholder="Edit your post..."
+                />
+            </div>
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    text
+                    @click="isEditDialogVisible = false"
+                />
+                <Button label="Save" icon="pi pi-check" @click="submitEdit" />
+            </template>
+        </Dialog>
     </AuthenticatedLayout>
 </template>
 
@@ -103,9 +127,14 @@ import Card from 'primevue/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useToast } from 'primevue/usetoast';
+import Dialog from 'primevue/dialog';
+
 const toast = useToast();
-// New post input
 const newPost = ref('');
+
+const editingPostId = ref(null);
+const editedContent = ref('');
+const isEditDialogVisible = ref(false);
 
 defineProps({
     posts: Array,
@@ -164,11 +193,38 @@ function addComment(post) {
     );
 }
 
-function editPost(post) {
-    alert('Edit post: ' + post.id);
+function startEdit(post) {
+    editingPostId.value = post.id;
+    editedContent.value = post.content;
+    isEditDialogVisible.value = true;
+}
+
+function submitEdit() {
+    router.put(
+        `/posts/${editingPostId.value}`,
+        {
+            content: editedContent.value,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                editingPostId.value = null;
+                editedContent.value = '';
+                isEditDialogVisible.value = false;
+                router.reload({ only: ['posts'] });
+            },
+        },
+    );
 }
 
 function deletePost(postId) {
-    posts.value = posts.value.filter((p) => p.id !== postId);
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    router.delete(`/posts/${postId}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            router.reload({ only: ['posts'] });
+        },
+    });
 }
 </script>

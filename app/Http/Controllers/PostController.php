@@ -66,4 +66,20 @@ class PostController extends Controller
 
         return back(); // or redirect()->route('feed')
     }
+    public function update(Request $request, Post $post)
+    {
+        $request->validate([
+            'content' => 'required|string|max:500',
+        ]);
+
+        $post->update([
+            'content' => $request->content,
+        ]);
+        return back(); // or redirect with Inertia response if needed
+    }
+    public function destroy(Post $post)
+    {
+        $post->delete();
+        return back(); // or Inertia redirect
+    }
 }
