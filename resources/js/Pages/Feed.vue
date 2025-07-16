@@ -96,10 +96,10 @@
                                 />
                             </div>
                             <div
-                                v-if="errors?.createComment?.content"
+                                v-if="useCommentError(post.id).value"
                                 class="mt-1 text-sm text-red-500"
                             >
-                                {{ errors.createComment.content }}
+                                {{ useCommentError(post.id).value }}
                             </div>
                             <div
                                 v-for="comment in post.comments"
@@ -187,14 +187,18 @@ const editingPostId = ref(null);
 const editedContent = ref('');
 const isEditDialogVisible = ref(false);
 
-defineProps({
+const props = defineProps({
     posts: Array,
     errors: Object,
 });
 dayjs.extend(relativeTime);
 
 const authUser = computed(() => page.props.auth.user);
-
+function useCommentError(postId) {
+    return computed(() => {
+        return props.errors?.[`createComment_${postId}`]?.content ?? '';
+    });
+}
 function submitPost() {
     if (!newPost.value.trim()) return;
 
@@ -240,7 +244,7 @@ function addComment(post) {
             content: post.newComment,
         },
         {
-            errorBag: `createComment`,
+            errorBag: `createComment_${post.id}`,
             preserveScroll: true,
             onSuccess: () => {
                 post.newComment = '';
