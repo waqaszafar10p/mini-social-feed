@@ -146,6 +146,12 @@
                     placeholder="Edit your post..."
                 />
             </div>
+            <div
+                v-if="errors?.editPost?.content"
+                class="mt-1 text-sm text-red-500"
+            >
+                {{ errors.editPost.content }}
+            </div>
             <template #footer>
                 <Button
                     label="Cancel"
@@ -159,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import InputText from 'primevue/inputtext';
@@ -171,7 +177,9 @@ import Dialog from 'primevue/dialog';
 import { useConfirm } from 'primevue/useconfirm';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { usePage } from '@inertiajs/vue3';
 
+const page = usePage();
 const toast = useToast();
 const newPost = ref('');
 const newComment = ref('');
@@ -182,10 +190,11 @@ const isEditDialogVisible = ref(false);
 
 defineProps({
     posts: Array,
-    authUser: Object,
     errors: Object,
 });
 dayjs.extend(relativeTime);
+
+const authUser = computed(() => page.props.auth.user);
 
 function submitPost() {
     if (!newPost.value.trim()) return;
@@ -259,6 +268,7 @@ function submitEdit() {
             content: editedContent.value,
         },
         {
+            errorBag: 'editPost',
             preserveScroll: true,
             onSuccess: () => {
                 editingPostId.value = null;

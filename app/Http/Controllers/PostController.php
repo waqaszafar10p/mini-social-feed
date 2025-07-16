@@ -38,8 +38,7 @@ class PostController extends Controller
 
 
         return Inertia::render('Feed', [
-            'posts' => $posts,
-            'authUser' => auth()->user()
+            'posts' => $posts
         ]);
     }
     public function store(Request $request)
@@ -66,7 +65,7 @@ class PostController extends Controller
             $post->likes()->create(['user_id' => $user->id]);
         }
 
-        return back(); 
+        return back();
     }
     public function update(Request $request, Post $post)
     {
@@ -77,11 +76,11 @@ class PostController extends Controller
         $post->update([
             'content' => $request->content,
         ]);
-        return back(); 
+        return back();
     }
     public function destroy(Post $post)
     {
         $post->delete();
-        return back(); 
+        return back();
     }
 }
