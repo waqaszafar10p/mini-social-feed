@@ -85,7 +85,7 @@
                         >
                             <div class="mt-2 flex gap-2">
                                 <InputText
-                                    v-model="newComment"
+                                    v-model="post.newComment"
                                     class="w-full"
                                     placeholder="Write a comment..."
                                 />
@@ -182,7 +182,6 @@ import { usePage } from '@inertiajs/vue3';
 const page = usePage();
 const toast = useToast();
 const newPost = ref('');
-const newComment = ref('');
 const confirm = useConfirm();
 const editingPostId = ref(null);
 const editedContent = ref('');
@@ -233,18 +232,18 @@ function toggleLike(post) {
 }
 
 function addComment(post) {
-    if (!newComment.value || !newComment.value.trim()) return;
+    if (!post.newComment || !post.newComment.trim()) return;
 
     router.post(
         `/posts/${post.id}/comments`,
         {
-            content: newComment.value,
+            content: post.newComment,
         },
         {
-            errorBag: 'createComment',
+            errorBag: `createComment`,
             preserveScroll: true,
             onSuccess: () => {
-                newComment.value = '';
+                post.newComment = '';
                 toast.add({
                     severity: 'success',
                     summary: 'Comment added!',
@@ -274,6 +273,11 @@ function submitEdit() {
                 editingPostId.value = null;
                 editedContent.value = '';
                 isEditDialogVisible.value = false;
+                toast.add({
+                    severity: 'success',
+                    summary: 'Post Updated!',
+                    life: 3000,
+                });
                 router.reload({ only: ['posts'] });
             },
         },
