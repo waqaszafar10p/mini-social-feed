@@ -33,6 +33,10 @@ php artisan key:generate
 
 php artisan migrate --seed
 
+if system ask
+- The SQLite database configured for this application does not exist: database/database.sqlite. 
+Hit Yes
+
 ### This will create:
 - 5 demo users
 - Each user with 5 posts
