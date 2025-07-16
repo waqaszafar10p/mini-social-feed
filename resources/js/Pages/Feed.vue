@@ -85,7 +85,7 @@
                         >
                             <div class="mt-2 flex gap-2">
                                 <InputText
-                                    v-model="post.newComment"
+                                    v-model="commentInputs[post.id]"
                                     class="w-full"
                                     placeholder="Write a comment..."
                                 />
@@ -186,6 +186,7 @@ const confirm = useConfirm();
 const editingPostId = ref(null);
 const editedContent = ref('');
 const isEditDialogVisible = ref(false);
+const commentInputs = ref({});
 
 const props = defineProps({
     posts: Array,
@@ -236,18 +237,19 @@ function toggleLike(post) {
 }
 
 function addComment(post) {
-    if (!post.newComment || !post.newComment.trim()) return;
+    const commentContent = commentInputs.value[post.id];
+    if (!commentContent || !commentContent.trim()) return;
 
     router.post(
         `/posts/${post.id}/comments`,
         {
-            content: post.newComment,
+            content: commentContent,
         },
         {
             errorBag: `createComment_${post.id}`,
             preserveScroll: true,
             onSuccess: () => {
-                post.newComment = '';
+                commentInputs.value[post.id] = '';
                 toast.add({
                     severity: 'success',
                     summary: 'Comment added!',
