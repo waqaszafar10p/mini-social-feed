@@ -129,6 +129,20 @@
                     </template>
                 </Card>
             </div>
+            <!-- Scroll trigger -->
+            <!-- <div ref="loadMoreTrigger" class="h-10"></div> -->
+            <!-- Load More button -->
+            <div class="mt-4 text-center" v-if="nextPageUrl">
+                <Button
+                    label="Load More"
+                    icon="pi pi-arrow-down"
+                    :loading="isLoadingMore"
+                    @click="loadMorePosts"
+                />
+            </div>
+            <div v-if="isLoadingMore" class="mt-2 text-center text-sm">
+                Loading more posts...
+            </div>
         </div>
         <Dialog
             v-model:visible="isEditDialogVisible"
@@ -166,6 +180,8 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+// import { onMounted, onUnmounted } from 'vue';
+
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import InputText from 'primevue/inputtext';
@@ -178,6 +194,11 @@ import { useConfirm } from 'primevue/useconfirm';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { usePage } from '@inertiajs/vue3';
+import { useThrottleFn } from '@vueuse/core';
+const props = defineProps({
+    posts: Object, // 👈 it's an object, not Array anymore
+    errors: Object,
+});
 
 const page = usePage();
 const toast = useToast();
@@ -187,11 +208,45 @@ const editingPostId = ref(null);
 const editedContent = ref('');
 const isEditDialogVisible = ref(false);
 const commentInputs = ref({});
+const posts = ref(props.posts.data || []);
+const nextPageUrl = ref(props.posts.next_page_url || null);
+const isLoadingMore = ref(false);
+// const loadMoreTrigger = ref(null);
 
-const props = defineProps({
-    posts: Array,
-    errors: Object,
-});
+const loadMorePosts = async () => {
+    if (!nextPageUrl.value || isLoadingMore.value) return;
+    isLoadingMore.value = true;
+    try {
+        const response = await fetch(nextPageUrl.value, {
+            headers: {
+                Accept: 'application/json', // 👈 crucial
+            },
+        });
+        const data = await response.json();
+        posts.value.push(...data.data);
+        nextPageUrl.value = data.next_page_url;
+    } finally {
+        isLoadingMore.value = false;
+    }
+};
+
+// let observer;
+// onMounted(() => {
+//     observer = new IntersectionObserver(([entry]) => {
+//         if (entry.isIntersecting) loadMorePosts();
+//     });
+
+//     if (loadMoreTrigger.value) {
+//         observer.observe(loadMoreTrigger.value);
+//     }
+// });
+
+// onUnmounted(() => {
+//     if (observer && loadMoreTrigger.value) {
+//         observer.unobserve(loadMoreTrigger.value);
+//     }
+// });
+
 dayjs.extend(relativeTime);
 
 const authUser = computed(() => page.props.auth.user);
@@ -222,19 +277,17 @@ function submitPost() {
         },
     );
 }
-
-function toggleLike(post) {
+const _toggle = (post) => {
     router.post(
         `/posts/${post.id}/like`,
         {},
         {
             preserveScroll: true,
-            onFinish: () => {
-                router.reload({ only: ['posts'] });
-            },
+            onFinish: () => router.reload({ only: ['posts'] }),
         },
     );
-}
+};
+const toggleLike = useThrottleFn(_toggle, 3000, true, false); // leading only
 
 function addComment(post) {
     const commentContent = commentInputs.value[post.id];
