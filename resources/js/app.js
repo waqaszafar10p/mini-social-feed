@@ -15,10 +15,19 @@ import PrimeVue from 'primevue/config';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 
+import { configureEcho } from '@laravel/echo-vue';
 import ConfirmationService from 'primevue/confirmationservice';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
+configureEcho({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT,
+    wssPort: import.meta.env.VITE_REVERB_PORT,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    enabledTransports: ['ws', 'wss'],
+});
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>

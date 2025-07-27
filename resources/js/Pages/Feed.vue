@@ -132,7 +132,7 @@
             <!-- Scroll trigger -->
             <!-- <div ref="loadMoreTrigger" class="h-10"></div> -->
             <!-- Load More button -->
-            <div class="mt-4 text-center" v-if="nextPageUrl">
+            <!-- <div class="mt-4 text-center" v-if="nextPageUrl">
                 <Button
                     label="Load More"
                     icon="pi pi-arrow-down"
@@ -142,7 +142,7 @@
             </div>
             <div v-if="isLoadingMore" class="mt-2 text-center text-sm">
                 Loading more posts...
-            </div>
+            </div> -->
         </div>
         <Dialog
             v-model:visible="isEditDialogVisible"
@@ -179,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 // import { onMounted, onUnmounted } from 'vue';
 
 import Button from 'primevue/button';
@@ -195,8 +195,9 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { usePage } from '@inertiajs/vue3';
 import { useThrottleFn } from '@vueuse/core';
+import { useEcho } from '@laravel/echo-vue';
 const props = defineProps({
-    posts: Object, // 👈 it's an object, not Array anymore
+    posts: Array, // 👈 it's an object, not Array anymore
     errors: Object,
 });
 
@@ -208,11 +209,15 @@ const editingPostId = ref(null);
 const editedContent = ref('');
 const isEditDialogVisible = ref(false);
 const commentInputs = ref({});
-const posts = ref(props.posts.data || []);
+const posts = ref(props.posts || []);
 const nextPageUrl = ref(props.posts.next_page_url || null);
 const isLoadingMore = ref(false);
 // const loadMoreTrigger = ref(null);
-
+watchEffect(() => {
+    if (props?.posts) {
+        posts.value = props.posts;
+    }
+});
 const loadMorePosts = async () => {
     if (!nextPageUrl.value || isLoadingMore.value) return;
     isLoadingMore.value = true;
@@ -246,6 +251,13 @@ const loadMorePosts = async () => {
 //         observer.unobserve(loadMoreTrigger.value);
 //     }
 // });
+useEcho(`posts`, '.post.liked', (e) => {
+    console.log('here is the event data::', e);
+    const idx = posts.value.findIndex((p) => p.id === e.postId);
+    if (idx !== -1) {
+        posts.value[idx].likes_count = e.likesCount;
+    }
+});
 
 dayjs.extend(relativeTime);
 
@@ -277,6 +289,19 @@ function submitPost() {
         },
     );
 }
+
+// function toggleLike(post) {
+//     router.post(
+//         `/posts/${post.id}/like`,
+//         {},
+//         {
+//             preserveScroll: true,
+//             onFinish: () => {
+//                 router.reload({ only: ['posts'] });
+//             },
+//         },
+//     );
+// }
 const _toggle = (post) => {
     router.post(
         `/posts/${post.id}/like`,
@@ -287,7 +312,7 @@ const _toggle = (post) => {
         },
     );
 };
-const toggleLike = useThrottleFn(_toggle, 3000, true, false); // leading only
+const toggleLike = useThrottleFn(_toggle, 2000, true, false); // leading only
 
 function addComment(post) {
     const commentContent = commentInputs.value[post.id];

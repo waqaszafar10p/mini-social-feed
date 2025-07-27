@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PostLiked;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,8 +17,9 @@ class PostController extends Controller
             'comments.user:id,name'
         ])
             ->latest()
-            ->paginate(10) // 👈 paginate 10 posts at a time
-            ->through(function ($post) {
+            // ->paginate(10) // 👈 paginate 10 posts at a time
+            ->get() // 👈 paginate 10 posts at a time
+            ->map(function ($post) {
                 return [
                     'id' => $post->id,
                     'content' => $post->content,
@@ -36,9 +38,9 @@ class PostController extends Controller
                 ];
             });
 
-        if ($request->wantsJson()) {
-            return response()->json($posts); // for API-style fetches
-        }
+        // if ($request->wantsJson()) {
+        //     return response()->json($posts); // for API-style fetches
+        // }
 
         return Inertia::render('Feed', [
             'posts' => $posts,
@@ -67,6 +69,9 @@ class PostController extends Controller
             // Like
             $post->likes()->create(['user_id' => $user->id]);
         }
+        $likesCount = $post->likes()->count();
+
+        broadcast(new PostLiked($post->id, $likesCount))->toOthers();
 
         return back();
     }
