@@ -58,6 +58,10 @@ Password of all the user is 'password'
 
 composer run dev
 
+## The Reverb server start Artisan command For realtime likes update
+
+php artisan reverb:start
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
