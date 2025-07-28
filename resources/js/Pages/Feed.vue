@@ -210,30 +210,30 @@ const editedContent = ref('');
 const isEditDialogVisible = ref(false);
 const commentInputs = ref({});
 const posts = ref(props.posts || []);
-const nextPageUrl = ref(props.posts.next_page_url || null);
-const isLoadingMore = ref(false);
+// const nextPageUrl = ref(props.posts.next_page_url || null);
+// const isLoadingMore = ref(false);
 // const loadMoreTrigger = ref(null);
 watchEffect(() => {
     if (props?.posts) {
         posts.value = props.posts;
     }
 });
-const loadMorePosts = async () => {
-    if (!nextPageUrl.value || isLoadingMore.value) return;
-    isLoadingMore.value = true;
-    try {
-        const response = await fetch(nextPageUrl.value, {
-            headers: {
-                Accept: 'application/json', // 👈 crucial
-            },
-        });
-        const data = await response.json();
-        posts.value.push(...data.data);
-        nextPageUrl.value = data.next_page_url;
-    } finally {
-        isLoadingMore.value = false;
-    }
-};
+// const loadMorePosts = async () => {
+//     if (!nextPageUrl.value || isLoadingMore.value) return;
+//     isLoadingMore.value = true;
+//     try {
+//         const response = await fetch(nextPageUrl.value, {
+//             headers: {
+//                 Accept: 'application/json', // 👈 crucial
+//             },
+//         });
+//         const data = await response.json();
+//         posts.value.push(...data.data);
+//         nextPageUrl.value = data.next_page_url;
+//     } finally {
+//         isLoadingMore.value = false;
+//     }
+// };
 
 // let observer;
 // onMounted(() => {
